@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 # Import datasets, classifiers and performance metrics
 from sklearn import datasets, metrics, svm
 from sklearn.model_selection import train_test_split
+from utils import *
 
 ###############################################################################
 # Digits dataset
@@ -118,12 +119,19 @@ n_samples = len(digits.images)
 data = digits.images.reshape((n_samples, -1))
 X = data
 y  = digits.target
+
+gamma = [0.001,0.01,0.1,1,10,100]
+C = [0.1,1,2,5,10]
+param_groups = [{"gamma":i, "C":j} for i in gamma for j in C] 
+# Create Train_test_dev size groups
+test_sizes = [0.1, 0.2, 0.3] 
+dev_sizes  = [0.1, 0.2, 0.3]
+test_dev_size_combintion = [{"test_size":i, "dev_size":j} for i in test_sizes for j in dev_sizes] 
+
 # Create a classifier: a support vector classifier
-clf = svm.SVC(gamma=0.001)
-
-# Split data into 50% train and 50% test subsets
-X_train, X_test, X_dev , y_train, y_test, y_dev = split_train_dev_test(X,y,test_size=0.25,dev_size=0.25)
-
-# Learn the digits on the train subset
-clf.fit(X_train, y_train)
-predict_and_eval(clf, X_test, y_test)
+model = svm.SVC
+for test_dev_size in test_dev_size_combintion:
+    X_train, X_test, X_dev , y_train, y_test, y_dev = split_train_dev_test(X,y,**test_dev_size)
+    train_acc, dev_acc, test_acc, optimal_param = tune_hparams(model,X_train, X_test, X_dev , y_train, y_test, y_dev,param_groups)
+    _ = 1 - (sum(test_dev_size.values()))
+    print(f'train_size: {_}, dev_size: {test_dev_size["dev_size"]}, test_size: {test_dev_size["test_size"]} , train_acc: {train_acc}, dev_acc: {dev_acc}, test_acc: {test_acc}, optimal_param: {optimal_param}')
