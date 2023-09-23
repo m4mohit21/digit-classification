@@ -35,7 +35,7 @@ from utils import *
 
 digits = datasets.load_digits()
 # print the height , width
-print(digits.image[0].shapes)
+print(digits.images[0].shapes)
 
 _, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
 for ax, image, label in zip(axes, digits.images, digits.target):
