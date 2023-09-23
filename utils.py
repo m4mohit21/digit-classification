@@ -22,3 +22,18 @@ def tune_hparams(model,X_train, X_test, X_dev , y_train, y_test, y_dev,list_of_p
     test_acc =  find_acc(best_model,X_test,y_test)
     return train_acc, dev_acc, test_acc, optimal_param
     
+
+
+def get_combinations(param,values,combinations):    
+    new_combinations = []
+    for value in values:
+        for combination in combinations:
+            combination[param] = value
+            new_combinations.append(combination.copy())    
+    return new_combinations
+
+def get_hyperparameter_combinations(dict_of_param_lists):    
+    base_combinations = [{}]
+    for param_name, param_values in dict_of_param_lists.items():
+        base_combinations = get_combinations(param_name, param_values, base_combinations)
+    return base_combinations

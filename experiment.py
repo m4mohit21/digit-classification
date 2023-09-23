@@ -122,7 +122,14 @@ y  = digits.target
 
 gamma = [0.001,0.01,0.1,1,10,100]
 C = [0.1,1,2,5,10]
-param_groups = [{"gamma":i, "C":j} for i in gamma for j in C] 
+param_groups = {
+    "gamma" : gamma,
+    "C" : C,
+}
+param_groups= get_hyperparameter_combinations(param_groups)
+
+ 
+# param_groups = [{"gamma":i, "C":j} for i in gamma for j in C] 
 # Create Train_test_dev size groups
 test_sizes = [0.1, 0.2, 0.3] 
 dev_sizes  = [0.1, 0.2, 0.3]
