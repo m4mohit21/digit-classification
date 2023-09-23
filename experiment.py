@@ -34,6 +34,8 @@ from utils import *
 # them using :func:`matplotlib.pyplot.imread`.
 
 digits = datasets.load_digits()
+# print the height , width
+print(digits.images[0].shape)
 
 _, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
 for ax, image, label in zip(axes, digits.images, digits.target):
@@ -56,6 +58,10 @@ for ax, image, label in zip(axes, digits.images, digits.target):
 # subsequently be used to predict the value of the digit for the samples
 # in the test subset.
 
+
+
+
+
 # Data preprocessing
 def split_train_dev_test(X,y,test_size,dev_size):
     _ = test_size + dev_size
@@ -65,6 +71,8 @@ def split_train_dev_test(X,y,test_size,dev_size):
     _xtest, _ytest, test_size=dev_size, shuffle=False)
     return X_train, X_test, X_dev , y_train, y_test, y_dev
     
+    
+
 # Predict the value of the digit on the test subset
 def predict_and_eval(model, X_test, y_test):
     predicted = model.predict(X_test)
@@ -119,10 +127,18 @@ n_samples = len(digits.images)
 data = digits.images.reshape((n_samples, -1))
 X = data
 y  = digits.target
-
+# No. of samples in data
+print(len(X))
 gamma = [0.001,0.01,0.1,1,10,100]
 C = [0.1,1,2,5,10]
-param_groups = [{"gamma":i, "C":j} for i in gamma for j in C] 
+param_groups = {
+    "gamma" : gamma,
+    "C" : C,
+}
+param_groups= get_hyperparameter_combinations(param_groups)
+
+ 
+# param_groups = [{"gamma":i, "C":j} for i in gamma for j in C] 
 # Create Train_test_dev size groups
 test_sizes = [0.1, 0.2, 0.3] 
 dev_sizes  = [0.1, 0.2, 0.3]
