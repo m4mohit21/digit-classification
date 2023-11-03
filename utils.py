@@ -1,27 +1,46 @@
 from sklearn.model_selection import train_test_split
 # Standard scientific Python imports
 import matplotlib.pyplot as plt
-from sklearn import datasets, metrics, svm
+from sklearn import svm, tree, datasets, metrics    
+from joblib import dump, load
+
 
 def find_acc(model, X_test, y_test):
     predicted = model.predict(X_test)
-    return metrics.accuracy_score(y_test,predicted)
+    return metrics.accuracy_score(y_test,predicted),predicted
 
-def tune_hparams(model,X_train, X_test, X_dev , y_train, y_test, y_dev,list_of_param_combination):
+def train_model(x, y, model_params, model_type="svm"):
+    if model_type == "svm":
+        # Create a classifier: a support vector classifier
+        clf = svm.SVC
+    if model_type == "tree":
+        # Create a classifier: a decision tree classifier
+        clf = tree.DecisionTreeClassifier
+    model = clf(**model_params)
+    # train the model
+    model.fit(x, y)
+    return model
+
+def tune_hparams(model_type,X_train, X_test, X_dev , y_train, y_test, y_dev,list_of_param_combination):
     best_acc = -1
+    best_model_path = ""
     for param_group in list_of_param_combination:
-        temp_model = model(**param_group)
+        temp_model = train_model(X_train, y_train, param_group, model_type=model_type)
+        # temp_model = model(**param_group)
         temp_model.fit(X_train,y_train)
-        acc = find_acc(temp_model,X_dev,y_dev)
+        acc,_ = find_acc(temp_model,X_dev,y_dev)
         if acc > best_acc:
             best_acc = acc
+            best_model_path = f'./models/{model_type}_' +"_".join(["{}:{}".format(k,v) for k,v in param_group.items()]) + ".joblib"
             best_model = temp_model
             optimal_param = param_group
-    train_acc= find_acc(best_model,X_train,y_train) 
-    dev_acc = find_acc(best_model,X_dev,y_dev)
-    test_acc =  find_acc(best_model,X_test,y_test)
-    return train_acc, dev_acc, test_acc, optimal_param
+    train_acc,_= find_acc(best_model,X_train,y_train) 
+    dev_acc,_ = find_acc(best_model,X_dev,y_dev)
+    test_acc,_test_predicted =  find_acc(best_model,X_test,y_test)
+    # save the best_model    
+    dump(best_model, best_model_path) 
     
+    return optimal_param,best_model_path, best_acc
 
 
 def get_combinations(param,values,combinations):    
@@ -37,3 +56,4 @@ def get_hyperparameter_combinations(dict_of_param_lists):
     for param_name, param_values in dict_of_param_lists.items():
         base_combinations = get_combinations(param_name, param_values, base_combinations)
     return base_combinations
+
