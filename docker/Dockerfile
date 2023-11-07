@@ -7,4 +7,4 @@ RUN pip3 install -r /digits/requirements.txt
 # CMD ["echo", "our first cmd line"]
 WORKDIR /digits/
 CMD ["pytest"]
-# RUN pytest
+# RUN pytestco
