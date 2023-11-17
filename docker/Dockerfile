@@ -7,4 +7,6 @@ RUN pip3 install -r /digits/requirements.txt
 # CMD ["echo", "our first cmd line"]
 WORKDIR /digits/
 CMD ["pytest"]
-# RUN pytestco
+# RUN pytest
+ENV FLASK_APP=api/hello.py
+CMD ["flask","run", "--host", "0.0.0.0"]
