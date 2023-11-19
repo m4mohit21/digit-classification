@@ -15,5 +15,6 @@ def test_post_predict():
     
     for label,image in enumerate(images):
         response = app.test_client().post("/predict", json = {'input1': image })
+        
         assert response.status_code == 200
         assert response.get_data() == bytes(str(label), "utf-8")
