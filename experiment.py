@@ -13,10 +13,12 @@ hand-written digits, from 0-9.
 
 # Standard scientific Python imports
 import matplotlib.pyplot as plt
+from joblib import dump
 
 # Import datasets, classifiers and performance metrics
 from sklearn import datasets, metrics, svm
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import Normalizer
 from utils import *
 
 ###############################################################################
@@ -24,14 +26,14 @@ from utils import *
 # --------------
 #
 # The digits dataset consists of 8x8
-# pixel images of digits. The ``images`` attribute of the dataset stores
+# pixel images of digits. The `images` attribute of the dataset stores
 # 8x8 arrays of grayscale values for each image. We will use these arrays to
-# visualize the first 4 images. The ``target`` attribute of the dataset stores
+# visualize the first 4 images. The `target` attribute of the dataset stores
 # the digit each image represents and this is included in the title of the 4
 # plots below.
 #
 # Note: if we were working from image files (e.g., 'png' files), we would load
-# them using :func:`matplotlib.pyplot.imread`.
+# them using :func:matplotlib.pyplot.imread.
 
 digits = datasets.load_digits()
 # print the height , width
@@ -48,10 +50,10 @@ for ax, image, label in zip(axes, digits.images, digits.target):
 # --------------
 #
 # To apply a classifier on this data, we need to flatten the images, turning
-# each 2-D array of grayscale values from shape ``(8, 8)`` into shape
-# ``(64,)``. Subsequently, the entire dataset will be of shape
-# ``(n_samples, n_features)``, where ``n_samples`` is the number of images and
-# ``n_features`` is the total number of pixels in each image.
+# each 2-D array of grayscale values from shape `(8, 8)` into shape
+# `(64,)`. Subsequently, the entire dataset will be of shape
+# `(n_samples, n_features), where ``n_samples` is the number of images and
+# `n_features` is the total number of pixels in each image.
 #
 # We can then split the data into train and test subsets and fit a support
 # vector classifier on the train samples. The fitted classifier can
@@ -89,7 +91,7 @@ def predict_and_eval(model, X_test, y_test):
 
 
     ###############################################################################
-    # We can also plot a :ref:`confusion matrix <confusion_matrix>` of the
+    # We can also plot a :ref:confusion matrix <confusion_matrix> of the
     # true digit values and the predicted digit values.
 
     disp = metrics.ConfusionMatrixDisplay.from_predictions(y_test, predicted)
@@ -100,8 +102,8 @@ def predict_and_eval(model, X_test, y_test):
 
     ###############################################################################
     # If the results from evaluating a classifier are stored in the form of a
-    # :ref:`confusion matrix <confusion_matrix>` and not in terms of `y_true` and
-    # `y_pred`, one can still build a :func:`~sklearn.metrics.classification_report`
+    # :ref:confusion matrix <confusion_matrix> and not in terms of y_true and
+    # y_pred, one can still build a :func:~sklearn.metrics.classification_report
     # as follows:
 
 
@@ -152,11 +154,19 @@ h_params_trees_combinations = get_hyperparameter_combinations(h_params_tree)
 classifier_param_dict['tree'] = h_params_trees_combinations
 
 
+solver = ["lbfgs", "liblinear", "newton-cg", "newton-cholesky", "sag", "saga"]
+h_params_tree = {
+    'solver' :solver}
+
+h_params_trees_combinations = get_hyperparameter_combinations(h_params_tree)
+classifier_param_dict['lr'] = h_params_trees_combinations
+
+
  
 # param_groups = [{"gamma":i, "C":j} for i in gamma for j in C] 
 # Create Train_test_dev size groups
-test_sizes = [0.1, 0.2, 0.3] 
-dev_sizes  = [0.1, 0.2, 0.3]
+test_sizes = [0.1] 
+dev_sizes  = [0.1]
 test_dev_size_combintion = [{"test_size":i, "dev_size":j} for i in test_sizes for j in dev_sizes] 
 
 # Create a classifier: a support vector classifier
@@ -183,9 +193,16 @@ for cur_run_i in range(num_runs):
             # X_train, X_test, X_dev, y_train, y_test, y_dev = train_test_dev_split(X, y, test_size=test_size, dev_size=dev_size)
             X_train, X_test, X_dev , y_train, y_test, y_dev = split_train_dev_test(X,y,test_size=test_size, dev_size=dev_size)
 
+            transforms = Normalizer().fit(X_train)
+            X_train = transforms.transform(X_train)
+            X_test = transforms.transform(X_test)
+            X_dev = transforms.transform(X_dev)
+
+            dump(transforms,'./models/transforms.joblib')
+
             # # 4. Data preprocessing
             # X_train = preprocess_data(X_train)
-            # X_test = preprocess_data(X_test)
+            # X_test = preprocess_data(X_test)flas
             # X_dev = preprocess_data(X_dev)
 
             binary_preds = {}
@@ -211,14 +228,14 @@ for cur_run_i in range(num_runs):
                 print(metrics.confusion_matrix(y_test, predicted_y))
 
 
-print("svm-tree Confusion metrics".format())
-print(metrics.confusion_matrix(model_preds['svm'], model_preds['tree']))
+# print("svm-tree Confusion metrics".format())
+# print(metrics.confusion_matrix(model_preds['svm'], model_preds['tree']))
 
-print("binarized predictions")
-print(metrics.confusion_matrix(binary_preds['svm'], binary_preds['tree'], labels=[True, False]))
-print("binarized predictions -- normalized over true labels")
-print(metrics.confusion_matrix(binary_preds['svm'], binary_preds['tree'], labels=[True, False] , normalize='true'))
-print("binarized predictions -- normalized over pred  labels")
-print(metrics.confusion_matrix(binary_preds['svm'], binary_preds['tree'], labels=[True, False] , normalize='pred'))
+# print("binarized predictions")
+# print(metrics.confusion_matrix(binary_preds['svm'], binary_preds['tree'], labels=[True, False]))
+# print("binarized predictions -- normalized over true labels")
+# print(metrics.confusion_matrix(binary_preds['svm'], binary_preds['tree'], labels=[True, False] , normalize='true'))
+# print("binarized predictions -- normalized over pred  labels")
+# print(metrics.confusion_matrix(binary_preds['svm'], binary_preds['tree'], labels=[True, False] , normalize='pred'))
         
 # print(pd.DataFrame(results).groupby('model_type').describe().T)
